@@ -29,9 +29,26 @@ void Semaforo::acquire() {
 }
 
 
+
 void Semaforo::release() {
-    // TODO
+
+    // Creamos un bloque para proteger el valor del semaforo.
+    // Solo un hilo podra modificarlo a la vez.
+    {
+        // Bloqueamos el mutex mientras cambiamos el valor.
+        std::lock_guard<std::mutex> lock(_m);
+
+        // Devolvemos un permiso al semaforo.
+        // Por ejemplo, si habia 0 permisos, ahora hay 1.
+        ++_valor;
+
+    } // Aqui se libera automaticamente el mutex.
+
+    // Avisamos a uno de los hilos que este esperando.
+    // Ese hilo podra comprobar si hay un permiso disponible.
+    _cv.notify_one();
 }
+
 
 bool Semaforo::tryAcquireFor(std::chrono::milliseconds plazo) {
     (void)plazo;  // TODO
