@@ -10,7 +10,7 @@ add_executable(${NOMBRE_EJECUTABLE}
      Cuenta.h
     Cuenta.cpp
     Banco.h
-    # Clase2.cpp
+    Banco.cpp
     # Clase3.h
     # Clase3.cpp
 )
