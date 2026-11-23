@@ -8,8 +8,8 @@ set(NOMBRE_EJECUTABLE caso)   # aeropuerto, cocina, banco, ferrocarril o almacen
 add_executable(${NOMBRE_EJECUTABLE}
     main.cpp
      Cuenta.h
-    # Clase1.cpp
-    # Clase2.h
+    Cuenta.cpp
+    Banco.h
     # Clase2.cpp
     # Clase3.h
     # Clase3.cpp
