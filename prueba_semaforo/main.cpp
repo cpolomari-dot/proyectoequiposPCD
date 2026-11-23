@@ -29,5 +29,33 @@ int main() {
     // en esta primera prueba.
     std::cout << "OK: prueba 1 superada.\n";
 
+
+
+    // ==========================================
+    // PRUEBA 2: Comprobar el funcionamiento de release()
+    // ==========================================
+
+    // En la primera prueba teniamos 0 permisos.
+    // Ahora vamos a devolver un permiso al semaforo.
+    semaforo.release();
+
+    // Intentamos conseguir el permiso que acabamos de devolver.
+    // Como ahora existe un permiso, deberia conseguirse.
+    bool conseguido2 = semaforo.tryAcquireFor(
+        std::chrono::milliseconds(50)
+    );
+
+    // Comprobamos si hemos conseguido el permiso.
+    if (!conseguido2) {
+
+        // Si no conseguimos el permiso, algo ha fallado.
+        std::cout << "ERROR: release no ha devuelto el permiso.\n";
+        return 1;
+    }
+
+    // Si llegamos aqui, significa que release funciona.
+    std::cout << "OK: prueba 2 superada.\n";
+
+
     return 0;
 }
