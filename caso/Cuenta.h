@@ -15,3 +15,4 @@ private:
     mutable std::mutex m_;                     // protege saldo_
     std::condition_variable cv_;               // "ha llegado dinero" (la usa la retirada de P2)
     long saldo_;
+};
