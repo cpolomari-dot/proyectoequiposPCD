@@ -50,7 +50,33 @@ void Semaforo::release() {
 }
 
 
+
 bool Semaforo::tryAcquireFor(std::chrono::milliseconds plazo) {
-    (void)plazo;  // TODO
-    return false;
+
+    // Bloqueamos el mutex para acceder al valor del semaforo
+    // de forma segura, evitando problemas entre varios hilos.
+    std::unique_lock<std::mutex> lock(_m);
+
+    // Esperamos hasta que haya un permiso disponible
+    // o hasta que se termine el tiempo indicado en "plazo".
+    if (!_cv.wait_for(lock, plazo, [this]() {
+
+        // Esta condicion comprueba si quedan permisos.
+        // Si el valor es mayor que 0, podemos continuar.
+        return _valor > 0;
+
+        })) {
+
+        // Si termina el tiempo y no hay permisos,
+        // devolvemos false para indicar que no hemos entrado.
+        return false;
+    }
+
+    // Si hemos llegado aqui, significa que hay un permiso.
+    // Consumimos uno restando 1 al valor del semaforo.
+    --_valor;
+
+    // Devolvemos true porque hemos conseguido el permiso.
+    // Al salir, el mutex se libera automaticamente.
+    return true;
 }
