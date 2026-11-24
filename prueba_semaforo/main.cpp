@@ -4,6 +4,8 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <vector>
+#include <algorithm>
 
 int main() {
 
@@ -113,6 +115,87 @@ int main() {
     // Si llegamos aqui, la tercera prueba ha funcionado.
     std::cout << "OK: prueba 3 superada.\n";
 
+
+
+
+    // ==============================================
+    // PRUEBA 4: Limitar la entrada de varios hilos
+    // ==============================================
+
+    // Creamos un semaforo con 3 permisos.
+    // Esto significa que como maximo pueden entrar
+    // 3 hilos al mismo tiempo.
+    Semaforo semaforo4(3);
+
+    // Guardamos todos los hilos que vamos a crear.
+    std::vector<std::thread> hilos;
+
+    // Cuenta cuantos hilos estan dentro actualmente.
+    std::atomic<int> dentro(0);
+
+    // Guarda el maximo numero de hilos que han
+    // estado dentro al mismo tiempo.
+    std::atomic<int> maximo(0);
+
+    // Indica si algun hilo ha superado el limite.
+    std::atomic<bool> error4(false);
+
+    // Creamos 10 hilos que intentaran entrar.
+    for (int i = 0; i < 10; ++i) {
+
+        hilos.emplace_back([&]() {
+
+            // El hilo espera hasta conseguir un permiso.
+            semaforo4.acquire();
+
+            // Contamos que este hilo ha entrado.
+            int actual = ++dentro;
+
+            // Actualizamos el maximo de forma segura.
+            int anterior = maximo.load();
+
+            while (actual > anterior &&
+                !maximo.compare_exchange_weak(anterior, actual)) {
+                // Si otro hilo ha cambiado el maximo,
+                // repetimos la comprobacion.
+            }
+
+            // Detectamos si entran mas de 3 hilos.
+            if (actual > 3) {
+                error4.store(true);
+            }
+
+            // Simulamos que el hilo realiza un trabajo.
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(20)
+            );
+
+            // El hilo termina su trabajo y sale.
+            --dentro;
+
+            // Devuelve su permiso a otro hilo.
+            semaforo4.release();
+            });
+    }
+
+    // Esperamos a que terminen los 10 hilos.
+    for (auto& hilo4 : hilos) {
+        hilo4.join();
+    }
+
+    // Comprobamos que todos hayan salido y
+    // que no se haya superado el limite.
+    if (error4.load() || dentro.load() != 0 ||
+        maximo.load() > 3) {
+
+        std::cout << "ERROR: fallo en el limite de hilos.\n";
+        return 1;
+    }
+
+    // La prueba ha terminado correctamente.
+    std::cout << "OK: prueba 4 superada.\n";
+    std::cout << "Maximo de hilos simultaneos: "
+        << maximo.load() << "\n";
 
     return 0;
 }
