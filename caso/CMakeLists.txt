@@ -12,7 +12,7 @@ add_executable(${NOMBRE_EJECUTABLE}
     Cuenta.cpp
     Banco.h
     Banco.cpp
-    # Clase3.h
-    # Clase3.cpp
+    Antifraude.h
+    Antifraude.cpp
 )
 target_link_libraries(${NOMBRE_EJECUTABLE} PRIVATE base semaforo)
