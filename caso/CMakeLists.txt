@@ -7,7 +7,7 @@ set(NOMBRE_EJECUTABLE caso)   # aeropuerto, cocina, banco, ferrocarril o almacen
 
 add_executable(${NOMBRE_EJECUTABLE}
     main.cpp
-     Cuenta.h
+    Cuenta.h
     Cuenta.cpp
     Banco.h
     Banco.cpp
