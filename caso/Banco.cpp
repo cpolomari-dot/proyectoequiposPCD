@@ -30,3 +30,154 @@ long Banco::total() const {
     for (const Cuenta& c : cuentas_) suma += c.saldo();
     return suma;
 }
+
+//Parte 3 - Quique
+
+void Banco::auditor() {
+    while (true) {
+        {
+			std::unique_lock<std::mutex> lock(mtx_estado_); // Bloquea el mutex para esperar a que se detengan los hilos
+            cv_cierre_.wait_for(
+                lock,
+
+                std::chrono::milliseconds(periodo_auditor_),
+                [this]() { return detener_hilos_; }
+            );
+
+			if (detener_hilos_) { // Si se ha solicitado detener los hilos, salir del bucle
+                break;
+            }
+        }
+
+        auto inicio = std::chrono::steady_clock::now();
+
+        if (fallo_inanicion_) { // Si se ha activado el fallo de inanición, intentar bloquear todas las cuentas sin orden
+            bool hecha = false;
+            while (!hecha) {
+                {
+                    std::lock_guard<std::mutex> lock(mtx_estado_);
+                    if (detener_hilos_) {
+                        return;
+                    }
+                }
+
+                std::vector<std::unique_lock<std::mutex>> locks;
+                locks.reserve(cuentas_.size());
+                bool ok = true;
+
+                for (size_t idx = 0; idx < cuentas_.size(); ++idx) { // Intentar bloquear cada cuenta sin orden
+
+                    std::unique_lock<std::mutex> lk(cuentas_[idx].mutex(), std::try_to_lock);
+                    if (!lk.owns_lock()) {
+
+                        ok = false;
+                        break;
+                    }
+                    locks.push_back(std::move(lk));
+                }
+
+                if (!ok) { //Si no se ha podido bloquear todas las cuentas, liberar los locks y esperar antes de reintentar
+
+                    locks.clear();
+                    estadisticas_.sumar("pasadas fallidas", 1);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    continue;
+                }
+
+				comprobarInvariantesConCuentasBloqueadas(); // Si se han bloqueado todas las cuentas, comprobar las invariantes y registrar la métrica de auditoría
+                estadisticas_.sumar("pasadas del auditor", 1);
+                hecha = true;
+            }
+        }
+
+        else {
+
+			std::vector<std::unique_lock<std::mutex>> locks; // Bloquear todas las cuentas en orden para evitar inanición
+            locks.reserve(cuentas_.size());
+            for (size_t idx = 0; idx < cuentas_.size(); ++idx) {
+                locks.emplace_back(cuentas_[idx].mutex());
+            }
+
+			comprobarInvariantesConCuentasBloqueadas(); // Comprobar las invariantes con todas las cuentas bloqueadas y registrar la métrica de auditoría
+            estadisticas_.sumar("pasadas del auditor", 1);
+        }
+
+		auto fin = std::chrono::steady_clock::now(); // Registrar el tiempo que ha tardado la auditoría y añadirlo a las estadísticas
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(fin - inicio);
+        estadisticas_.registrarEspera("auditor", ms);
+    }
+}
+
+void Banco::nomina() {
+
+	while (true) { // Ingresa 10 euros en cada cuenta, avisando a las retiradas que están esperando
+        {
+            std::unique_lock<std::mutex> lock(mtx_estado_);
+            cv_cierre_.wait_for(
+                lock,
+                std::chrono::milliseconds(30),
+                [this]() { return detener_hilos_; }
+            );
+
+            if (detener_hilos_) {
+                break;
+            }
+        }
+
+		for (size_t idx = 0; idx < cuentas_.size(); ++idx) { // Para cada cuenta, intentar ingresar 10 euros y avisar a las retiradas que están esperando
+            {
+                std::lock_guard<std::mutex> lock(mtx_estado_);
+                if (detener_hilos_) {
+                    return;
+                }
+            
+            cuentas_[idx].ingresar(10); // Ingresa 10 euros en la cuenta idx (dura 1 ms y avisa a retiradas esperando)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    }
+}
+
+	void Banco::cerrarAuditorYNomina() { // Indica a los hilos del auditor y de la nómina que deben detenerse y notifica a los hilos que están esperando en las condiciones de cierre
+    {
+        std::lock_guard<std::mutex> lock(mtx_estado_);
+        detener_hilos_ = true;
+    }
+    cv_cierre_.notify_all();
+}
+    // Función auxiliar de Banco
+
+	void Banco::comprobarInvariantesConCuentasBloqueadas() { // Comprobar las invariantes con todas las cuentas bloqueadas y registrar las violaciones en las estadísticas
+
+        const long long n = static_cast<long long>(cuentas_.size());
+        long long sumaSaldos = 0;
+
+        for (size_t i = 0; i < cuentas_.size(); ++i) { // Leer el saldo sin volver a bloquear el mutex ya adquirido por el auditor
+
+            const long long saldo = cuentas_[i].saldoSinBloquear();
+
+			if (saldo < 0) { // Si el saldo es negativo, registrar la violación en las estadísticas
+
+                estadisticas_.violacion("Saldo negativo en la cuenta " + std::to_string(i));
+            }
+            sumaSaldos += saldo;
+        }
+
+        long long totalIngresos = 0;
+        long long totalRetiradas = 0;
+
+        {
+			std::lock_guard<std::mutex> lock(mtx_totales_); // Bloquear el mutex para leer los totales de ingresos y retiradas sin interferencias de otros hilos
+            totalIngresos = ingresos_;
+            totalRetiradas = retiradas_;
+        }
+
+        const long long saldoEsperado = 200LL * n + totalIngresos - totalRetiradas;
+
+		if (sumaSaldos != saldoEsperado) { // Si la suma de saldos no coincide con el saldo esperado, registrar la violación en las estadísticas
+
+            estadisticas_.violacion(
+                "Invariante de suma roto, el actual es: " + std::to_string(sumaSaldos) + "y el esperado es: " + std::to_string(saldoEsperado)
+            );
+        }
+    }
+
