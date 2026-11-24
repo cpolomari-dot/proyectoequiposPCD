@@ -84,13 +84,15 @@ bool ejecutarSimulacion(const Config& config,
     // Esperamos a que todos los clientes terminen.
     for (auto& hilo : hilosClientes) {
         hilo.join();
-        // Cuando todos los clientes han terminado,
-// enviamos el valor -1 para cerrar el antifraude.
-        antifraude.encolar(-1);
-
-        // Esperamos a que termine el hilo antifraude.
-        hiloAntifraude.join();
     }
+
+    // Cuando TODOS los clientes han terminado,
+    // enviamos el valor -1 para cerrar el antifraude.
+    antifraude.encolar(-1);
+
+    // Esperamos a que termine el hilo antifraude.
+    hiloAntifraude.join();
+
 
     // Pendiente: integrar auditor, nomina y antifraude.
     // Pendiente: comprobar los invariantes finales.
