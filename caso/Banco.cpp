@@ -1,8 +1,13 @@
 #include "Banco.h"
 
-Banco::Banco(int cuentas, int distancia, int operaciones, int umbral)
-    : cuentas_(cuentas), distancia_(distancia),
-      operaciones_(operaciones), umbral_(umbral) {}
+Banco::Banco(int cuentas, int distancia, int operaciones,
+    int umbral, bool carrera)
+    : cuentas_(cuentas),
+    distancia_(distancia),
+    operaciones_(operaciones),
+    umbral_(umbral),
+    carrera_(carrera) {
+}
 
 void Banco::cliente(int i) {
     const int n = static_cast<int>(cuentas_.size());
@@ -15,7 +20,14 @@ void Banco::cliente(int i) {
 
         if (j % 5 <= 2) {                                   // tipos 0, 1, 2: transferencia
             const long importe = 10 + (13L * i + 7L * j) % 100;
-            const bool hecha = Cuenta::transferir(cuentas_[origen], cuentas_[destino], importe);
+            // Realizamos la transferencia utilizando el modo
+// de funcionamiento seleccionado en la configuracion.
+            const bool hecha = Cuenta::transferir(
+                cuentas_[origen],
+                cuentas_[destino],
+                importe,
+                carrera_
+            );
             if (hecha && importe >= umbral_) {
                 // TODO (P4): poner la cuenta origen en la cola antifraude
             }

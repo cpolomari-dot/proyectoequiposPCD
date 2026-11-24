@@ -53,7 +53,11 @@ bool ejecutarSimulacion(const Config& config,
     vigilante.iniciar();
 
     // Creamos el objeto principal del banco.
-    Banco banco(cuentas, distancia, operaciones, umbral);
+    // Comprobamos si el usuario ha activado el modo carrera.
+    const bool carrera = config.fallo("carrera");
+
+    // Creamos el banco con la configuracion seleccionada.
+    Banco banco(cuentas, distancia, operaciones, umbral, carrera);
     // Creamos la cola antifraude desarrollada por P4.
     Antifraude antifraude;
 
