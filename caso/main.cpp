@@ -24,32 +24,36 @@ bool ejecutarSimulacion(const Config& config, Estadisticas& estadisticas, Traza&
 }
 
 
+
 int main(int argc, char* argv[]) {
 
-    // Recogemos los argumentos que introduce el usuario
-    // al ejecutar el programa desde la terminal.
+    // Recogemos los argumentos introducidos por el usuario
+    // desde la terminal al ejecutar nuestro programa.
     Config config(argc, argv);
 
-    // Creamos el lanzador de nuestro caso de estudio.
-    // Nuestro proyecto corresponde al caso 3: Banco.
-    //
-    // Dejamos pendiente la lista de las seis claves
-    // de configuracion hasta comprobar el enunciado.
-    //
-    // Indicamos los tres modos de fallo que tendremos
-    // que implementar durante el desarrollo:
-    //
-    // carrera: acceso incorrecto a datos compartidos.
-    // interbloqueo: hilos bloqueados entre ellos.
-    // inanicion: un hilo no consigue acceder a un recurso.
+    // Creamos el lanzador del caso 3: Banco.
+    // Indicamos las seis claves permitidas por el profesor
+    // para configurar el comportamiento de la simulacion.
 
     Lanzador lanzador(
         "banco",
-        {},
-        { "carrera", "interbloqueo", "inanicion" }
+        {
+            "clientes",        // Numero de clientes.
+            "cuentas",         // Numero de cuentas bancarias.
+            "operaciones",     // Operaciones por cliente.
+            "distancia",       // Distancia entre cuentas.
+            "umbral",          // Importe sospechoso.
+            "periodo_auditor"  // Tiempo entre auditorias.
+        },
+        {
+            "carrera",         // Carrera de datos.
+            "interbloqueo",    // Bloqueo entre hilos.
+            "inanicion"        // Dificultad para acceder al recurso.
+        }
     );
 
-    // El lanzador se encarga de ejecutar la simulacion
-    // utilizando la configuracion indicada por el usuario.
+    // El lanzador comprueba los argumentos y ejecuta
+    // nuestra funcion principal de simulacion.
+    // Tambien permite realizar pruebas de estres.
     return lanzador.ejecutar(config, ejecutarSimulacion);
 }
