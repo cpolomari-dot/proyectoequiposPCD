@@ -1,8 +1,0 @@
-C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - Código base/proyectoequiposPCD/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - Código base/proyectoequiposPCD/build/CMakeFiles/ZERO_CHECK.dir
-C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - Código base/proyectoequiposPCD/build/base/CMakeFiles/base.dir
-C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - Código base/proyectoequiposPCD/build/semaforo/CMakeFiles/semaforo.dir
-C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - Código base/proyectoequiposPCD/build/prueba_semaforo/CMakeFiles/prueba_semaforo.dir
-C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - Código base/proyectoequiposPCD/build/caso/CMakeFiles/caso.dir
-C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - Código base/proyectoequiposPCD/build/competicion/CMakeFiles/competicion.dir
-C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - Código base/proyectoequiposPCD/build/ejemplo/CMakeFiles/ejemplo.dir
