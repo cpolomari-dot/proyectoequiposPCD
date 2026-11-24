@@ -6,7 +6,11 @@ class Cuenta {
 public:
     Cuenta() : saldo_(200) {}
 
-    static bool transferir(Cuenta& origen, Cuenta& destino, long importe);
+    // Realiza una transferencia entre dos cuentas.
+ // Por defecto, la transferencia utiliza sincronizacion.
+ // El parametro carrera permite activar el fallo experimental.
+    static bool transferir(Cuenta& origen, Cuenta& destino,
+        long importe, bool carrera = false);
     long saldo() const;
 
 private:
