@@ -4,7 +4,8 @@
 
 
 bool Cuenta::transferir(Cuenta& origen, Cuenta& destino,
-    long importe, bool carrera) {
+    long importe, bool carrera,
+    bool interbloqueo) {
 
     // Evitamos transferir dinero a la misma cuenta.
     if (&origen == &destino)
@@ -34,6 +35,38 @@ bool Cuenta::transferir(Cuenta& origen, Cuenta& destino,
 
     // VERSION CORRECTA DE LA TRANSFERENCIA.
     // Protegemos las dos cuentas mediante sus mutex.
+
+    // MODO DE FALLO: INTERBLOQUEO.
+    // Bloqueamos las cuentas por separado para provocar
+    // una posible espera circular entre los hilos.
+    if (interbloqueo) {
+
+        // Bloqueamos primero la cuenta de origen.
+        std::unique_lock<std::mutex> bloqueoOrigen(origen.m_);
+
+        // Introducimos una pequena espera para facilitar
+        // que otro hilo bloquee la cuenta de destino.
+        std::this_thread::sleep_for(
+            std::chrono::milliseconds(1));
+
+        // Intentamos bloquear la cuenta de destino.
+        // Aqui puede producirse el interbloqueo.
+        std::unique_lock<std::mutex> bloqueoDestino(destino.m_);
+
+        // Comprobamos que exista saldo suficiente.
+        if (origen.saldo_ < importe)
+            return false;
+
+        // Realizamos la transferencia.
+        origen.saldo_ -= importe;
+        destino.saldo_ += importe;
+
+        // Avisamos a los hilos que esperan saldo.
+        destino.cv_.notify_all();
+
+        return true;
+    }
+
     std::scoped_lock bloqueo(origen.m_, destino.m_);
 
     // Comprobamos que haya saldo suficiente.

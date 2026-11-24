@@ -54,10 +54,13 @@ bool ejecutarSimulacion(const Config& config,
 
     // Creamos el objeto principal del banco.
     // Comprobamos si el usuario ha activado el modo carrera.
+   // Comprobamos los modos de fallo seleccionados.
     const bool carrera = config.fallo("carrera");
+    const bool interbloqueo = config.fallo("interbloqueo");
 
-    // Creamos el banco con la configuracion seleccionada.
-    Banco banco(cuentas, distancia, operaciones, umbral, carrera);
+    // Creamos el banco con los modos de fallo.
+    Banco banco(cuentas, distancia, operaciones,
+        umbral, carrera, interbloqueo);
     // Creamos la cola antifraude desarrollada por P4.
     Antifraude antifraude;
 

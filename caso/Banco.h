@@ -5,7 +5,8 @@
 class Banco {
 public:
     Banco(int cuentas, int distancia, int operaciones,
-        int umbral, bool carrera = false);
+        int umbral, bool carrera = false,
+        bool interbloqueo = false);
 
     void cliente(int i);      // el hilo del cliente i
     long total() const;       // suma de saldos (provisional, para probar)
@@ -17,4 +18,6 @@ private:
     int umbral_;
     // Indica si esta activado el modo de fallo carrera.
     bool carrera_;
+    // Indica si esta activado el modo interbloqueo.
+    bool interbloqueo_;
 };

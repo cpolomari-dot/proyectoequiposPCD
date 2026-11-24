@@ -10,7 +10,8 @@ public:
  // Por defecto, la transferencia utiliza sincronizacion.
  // El parametro carrera permite activar el fallo experimental.
     static bool transferir(Cuenta& origen, Cuenta& destino,
-        long importe, bool carrera = false);
+        long importe, bool carrera = false,
+        bool interbloqueo = false);
     long saldo() const;
 
 private:
