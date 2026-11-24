@@ -55,3 +55,44 @@ Los miembros privados de las clases llevan un guion bajo delante: `_saldo`, `_m`
 - `./competicion --comprobar`: calcula también el resultado correcto y dice si coincide (tarda más).
 
 Para medir, compilad siempre en modo Release. Es el modo por defecto de este proyecto. En Visual Studio, elegid la configuración Release.
+
+
+## Caso 3 — Banco: Semáforo (P5)
+
+### Implementación del semáforo
+
+El semáforo propio está implementado mediante un monitor que utiliza un mutex, una variable de condición y un contador de permisos.
+
+Dispone de tres operaciones:
+
+- `acquire()`: adquiere un permiso o bloquea el hilo hasta que haya uno disponible.
+- `release()`: devuelve un permiso y notifica a un hilo que esté esperando.
+- `tryAcquireFor()`: intenta adquirir un permiso durante un tiempo limitado.
+
+La protección del estado compartido se realiza mediante RAII.
+
+### Pruebas del semáforo
+
+El ejecutable `prueba_semaforo` comprueba:
+
+- Adquisición con cero permisos.
+- Devolución de permisos.
+- Bloqueo y desbloqueo de hilos.
+- Concurrencia con 12 hilos.
+- 20 repeticiones por hilo.
+- Trabajo de 300 microsegundos dentro del semáforo.
+- Límite de 3 hilos simultáneos.
+- Comparación con `std::counting_semaphore`.
+- Tiempo de espera de 50 ms sin permisos disponibles.
+
+### Ejecución en Visual Studio
+
+1. Seleccionar `prueba_semaforo.exe` como ejecutable.
+2. Ejecutar mediante Ctrl + F5.
+3. Comprobar que todas las pruebas muestran OK.
+
+El resultado esperado es de 240 operaciones completadas con cada implementación, sin superar los 3 hilos simultáneos.
+
+### Uso en el banco
+
+El semáforo propio se utilizará para controlar los huecos disponibles de la cola antifraude, cuya capacidad es de 8 elementos.
