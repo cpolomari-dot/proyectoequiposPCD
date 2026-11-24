@@ -1,0 +1,10 @@
+^C:\USERS\FARTONSPOLO\DESKTOP\PROGRMACION EN C\TRABAJO POR EQUIPOS - CÓDIGO BASE\PROYECTOEQUIPOSPCD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - Código base/proyectoequiposPCD" "-BC:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - Código base/proyectoequiposPCD/build" --check-stamp-file "C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - Código base/proyectoequiposPCD/build/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

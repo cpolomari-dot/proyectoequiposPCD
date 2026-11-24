@@ -1,0 +1,13 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - C\u00f3digo base/proyectoequiposPCD/build/cmake_install.cmake",
+		"C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - C\u00f3digo base/proyectoequiposPCD/build/base/cmake_install.cmake",
+		"C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - C\u00f3digo base/proyectoequiposPCD/build/semaforo/cmake_install.cmake",
+		"C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - C\u00f3digo base/proyectoequiposPCD/build/prueba_semaforo/cmake_install.cmake",
+		"C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - C\u00f3digo base/proyectoequiposPCD/build/caso/cmake_install.cmake",
+		"C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - C\u00f3digo base/proyectoequiposPCD/build/competicion/cmake_install.cmake",
+		"C:/Users/fartonspolo/Desktop/progrmacion en c/Trabajo por equipos - C\u00f3digo base/proyectoequiposPCD/build/ejemplo/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

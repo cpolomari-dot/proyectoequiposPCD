@@ -1,0 +1,77 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 11
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "base::@4506b02e7a4fef989908"
+		},
+		{
+			"id" : "semaforo::@54a5282440aebd2f19eb"
+		},
+		{
+			"id" : "prueba_semaforo::@fbdec8716ac0f48983be"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "caso::@c57e6836a6b90a8575c5"
+		},
+		{
+			"id" : "competicion::@0e33aaa46df41b8e4b89"
+		},
+		{
+			"id" : "ejemplo::@348d8325b062f4ae9bc8"
+		}
+	],
+	"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"orderDependencies" : 
+	[
+		{
+			"id" : "base::@4506b02e7a4fef989908"
+		},
+		{
+			"id" : "semaforo::@54a5282440aebd2f19eb"
+		},
+		{
+			"id" : "prueba_semaforo::@fbdec8716ac0f48983be"
+		},
+		{
+			"id" : "caso::@c57e6836a6b90a8575c5"
+		},
+		{
+			"id" : "competicion::@0e33aaa46df41b8e4b89"
+		},
+		{
+			"id" : "ejemplo::@348d8325b062f4ae9bc8"
+		}
+	],
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}
