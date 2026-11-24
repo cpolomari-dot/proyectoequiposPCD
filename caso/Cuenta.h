@@ -8,11 +8,9 @@ public:
 
     static bool transferir(Cuenta& origen, Cuenta& destino, long importe);
     long saldo() const;
-    int id() const { return id_; }
 
 private:
-    const int id_;
-    mutable std::mutex m_;                     // protege saldo_
-    std::condition_variable cv_;               // "ha llegado dinero" (la usa la retirada de P2)
+    mutable std::mutex m_;
+    std::condition_variable cv_;
     long saldo_;
 };
