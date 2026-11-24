@@ -23,9 +23,33 @@ bool ejecutarSimulacion(const Config& config, Estadisticas& estadisticas, Traza&
     return estadisticas.sinViolaciones();
 }
 
+
 int main(int argc, char* argv[]) {
+
+    // Recogemos los argumentos que introduce el usuario
+    // al ejecutar el programa desde la terminal.
     Config config(argc, argv);
-    // TODO: poner el nombre del caso, sus 6 claves y sus modos de fallo (el caso 5 añade "livelock").
-    Lanzador lanzador("caso", {}, {"carrera", "interbloqueo", "inanicion"});
+
+    // Creamos el lanzador de nuestro caso de estudio.
+    // Nuestro proyecto corresponde al caso 3: Banco.
+    //
+    // Dejamos pendiente la lista de las seis claves
+    // de configuracion hasta comprobar el enunciado.
+    //
+    // Indicamos los tres modos de fallo que tendremos
+    // que implementar durante el desarrollo:
+    //
+    // carrera: acceso incorrecto a datos compartidos.
+    // interbloqueo: hilos bloqueados entre ellos.
+    // inanicion: un hilo no consigue acceder a un recurso.
+
+    Lanzador lanzador(
+        "banco",
+        {},
+        { "carrera", "interbloqueo", "inanicion" }
+    );
+
+    // El lanzador se encarga de ejecutar la simulacion
+    // utilizando la configuracion indicada por el usuario.
     return lanzador.ejecutar(config, ejecutarSimulacion);
 }
