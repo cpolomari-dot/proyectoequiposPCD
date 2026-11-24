@@ -29,6 +29,8 @@ bool ejecutarSimulacion(const Config& config,
     const int operaciones = config.entero("operaciones", 20);
     const int distancia = config.entero("distancia", 1);
     const int umbral = config.entero("umbral", 100);
+    const int periodoAuditor =
+        config.entero("periodo_auditor", 20);
 
     // Comprobamos que la configuracion sea valida.
     if (clientes <= 0 || cuentas < 2 ||
@@ -57,10 +59,16 @@ bool ejecutarSimulacion(const Config& config,
    // Comprobamos los modos de fallo seleccionados.
     const bool carrera = config.fallo("carrera");
     const bool interbloqueo = config.fallo("interbloqueo");
+    // Activamos el modo inanicion si se solicita.
+    const bool inanicion = config.fallo("inanicion");
+   
 
     // Creamos el banco con los modos de fallo.
     Banco banco(cuentas, distancia, operaciones,
         umbral, carrera, interbloqueo);
+    // Configuramos el auditor y sus estadisticas.
+    banco.configurarAuditor(
+        periodoAuditor, inanicion, estadisticas);
     // Creamos la cola antifraude desarrollada por P4.
     Antifraude antifraude;
 
@@ -74,6 +82,16 @@ bool ejecutarSimulacion(const Config& config,
         });
 
     // Vector donde guardamos los hilos clientes.
+    // Lanzamos el hilo auditor para comprobar los invariantes.
+    std::thread hiloAuditor([&banco]() {
+        banco.auditor();
+        });
+
+    // Lanzamos el hilo nomina para realizar ingresos periodicos.
+    std::thread hiloNomina([&banco]() {
+        banco.nomina();
+        });
+    
     std::vector<std::thread> hilosClientes;
 
     // Reservamos espacio para todos los clientes.
@@ -91,7 +109,20 @@ bool ejecutarSimulacion(const Config& config,
     // Esperamos a que todos los clientes terminen.
     for (auto& hilo : hilosClientes) {
         hilo.join();
+        // Solicitamos el cierre del auditor y la nomina.
+        banco.cerrarAuditorYNomina();
+
+        // Esperamos a que ambos hilos terminen.
+        hiloAuditor.join();
+        hiloNomina.join();
     }
+
+    // Avisamos al auditor y a la nomina de que deben terminar.
+    banco.cerrarAuditorYNomina();
+
+    // Esperamos a que finalicen ambos hilos.
+    hiloAuditor.join();
+    hiloNomina.join();
 
     // Cuando TODOS los clientes han terminado,
     // enviamos el valor -1 para cerrar el antifraude.
@@ -103,6 +134,12 @@ bool ejecutarSimulacion(const Config& config,
 
     // Pendiente: integrar auditor, nomina y antifraude.
     // Pendiente: comprobar los invariantes finales.
+
+    // Comprobamos los invariantes finales del banco.
+    banco.comprobarinvariantesFinales();
+
+    // Comprobamos los invariantes finales.
+    banco.comprobarinvariantesFinales();
 
     // Detenemos el vigilante al finalizar.
     vigilante.detener();

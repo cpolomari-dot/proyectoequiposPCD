@@ -1,4 +1,4 @@
-#include "Cuenta.h"
+﻿#include "Cuenta.h"
 #include <chrono>
 #include <thread>
 
@@ -91,4 +91,11 @@ bool Cuenta::transferir(Cuenta& origen, Cuenta& destino,
 long Cuenta::saldo() const {
     std::scoped_lock g(m_);
     return saldo_;
+}
+void Cuenta::ingresar(long importe) {
+    std::unique_lock<std::mutex> lk(m_);
+    saldo_ += importe;
+    cv_.notify_all();
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(1));
 }
