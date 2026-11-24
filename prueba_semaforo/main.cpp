@@ -6,6 +6,7 @@
 #include <atomic>
 #include <vector>
 #include <algorithm>
+#include <semaphore>
 
 int main() {
 
@@ -215,6 +216,104 @@ int main() {
     std::cout << "Operaciones completadas: "
         << completadas.load() << "\n";
 
+
+
+
+    // ==============================================
+    // PRUEBA 5: Semaforo estandar de C++
+    // ==============================================
+
+    // Creamos un semaforo estandar sin permisos
+    // para comprobar el tiempo maximo de espera.
+    std::counting_semaphore<3> semaforoVacio(0);
+
+    // Intentamos conseguir un permiso durante 50 ms.
+    // Como no hay permisos, debe devolver false.
+    if (semaforoVacio.try_acquire_for(
+        std::chrono::milliseconds(50))) {
+
+        std::cout << "ERROR: semaforo estandar vacio.\n";
+        return 1;
+    }
+
+    // Creamos un semaforo estandar con 3 permisos.
+    // Solo pueden entrar 3 hilos simultaneamente.
+    std::counting_semaphore<3> semaforo5(3);
+
+    // Vector para almacenar los 12 hilos.
+    std::vector<std::thread> hilos5;
+
+    // Contador de los hilos que estan dentro.
+    std::atomic<int> dentro5(0);
+
+    // Contador de operaciones completadas.
+    std::atomic<int> completadas5(0);
+
+    // Variable que indica si se supera el limite.
+    std::atomic<bool> error5(false);
+
+    // Creamos los 12 hilos.
+    for (int i = 0; i < 12; ++i) {
+
+        hilos5.emplace_back([&]() {
+
+            // Cada hilo realiza 20 operaciones.
+            for (int j = 0; j < 20; ++j) {
+
+                // Esperamos hasta conseguir un permiso.
+                semaforo5.acquire();
+
+                // Registramos la entrada del hilo.
+                int actual = ++dentro5;
+
+                // Si hay mas de 3 hilos dentro,
+                // significa que la prueba ha fallado.
+                if (actual > 3) {
+                    error5.store(true);
+                }
+
+                // Simulamos el trabajo durante 300 us.
+                std::this_thread::sleep_for(
+                    std::chrono::microseconds(300)
+                );
+
+                // Registramos la salida del hilo.
+                --dentro5;
+
+                // Devolvemos el permiso al semaforo.
+                semaforo5.release();
+
+                // Registramos la operacion completada.
+                ++completadas5;
+            }
+            });
+    }
+
+    // Esperamos a que terminen todos los hilos.
+    for (auto& hilo5 : hilos5) {
+        hilo5.join();
+    }
+
+    // Comprobamos que:
+    // - Nunca haya habido mas de 3 hilos dentro.
+    // - No quede ningun hilo dentro.
+    // - Se hayan completado las 240 operaciones.
+    if (error5.load() ||
+        dentro5.load() != 0 ||
+        completadas5.load() != 240) {
+
+        std::cout << "ERROR: prueba 5 fallida.\n";
+        return 1;
+    }
+
+    // Mostramos los resultados de la ultima prueba.
+    std::cout << "OK: prueba 5 superada.\n";
+
+    std::cout << "Operaciones con semaforo estandar: "
+        << completadas5.load() << "\n";
+
+    // Todas las pruebas han terminado correctamente.
+    std::cout << "OK\n";
 
     return 0;
 }
