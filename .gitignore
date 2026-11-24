@@ -1,3 +1,11 @@
 build/
 *.obj
 *.pdb
+*.ilk
+*.exe
+.vs/
+out/
+*.pdf
+Programacion_concurrente_y_distribuida_documentos/
+Trabajo por equipos - Código base/
+temp_repo_clone/
