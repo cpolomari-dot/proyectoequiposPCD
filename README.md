@@ -96,3 +96,28 @@ El resultado esperado es de 240 operaciones completadas con cada implementación
 ### Uso en el banco
 
 El semáforo propio se utilizará para controlar los huecos disponibles de la cola antifraude, cuya capacidad es de 8 elementos.
+
+## P5 - Integracion del banco
+
+Se han integrado los hilos clientes, auditor,
+nomina y antifraude.
+
+El programa dispone de tres modos de fallo:
+
+- carrera
+- interbloqueo
+- inanicion
+
+El cierre de los hilos se realiza mediante join,
+notificaciones de cierre y un valor centinela.
+
+El proyecto compila correctamente.
+
+Incidencias pendientes de integracion del equipo:
+
+- Registro de los ingresos de la nomina.
+- Notificacion del progreso al vigilante.
+- Integracion completa de las operaciones de P2 y P4.
+
+La ejecucion normal todavia no supera todas
+las comprobaciones.

@@ -56,3 +56,9 @@ Se intentó integrar el trabajo de los compañeros, pero apareció un conflicto 
 ### Valoración personal
 
 La inteligencia artificial me ha servido como apoyo durante la práctica, tanto para desarrollar el código como para comprenderlo. He trabajado de forma progresiva, incorporando los cambios y realizando los commits individualmente.
+
+### Integración final de P5 - 24/11/2026
+
+Se ha utilizado ChatGPT como apoyo para la integración del código, la resolución de errores y la preparación de las pruebas.
+
+Se han incorporado las aportaciones de los compañeros y se ha comprobado que el proyecto compila correctamente, quedando pendientes algunas incidencias de funcionamiento del equipo.
