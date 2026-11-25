@@ -1,185 +1,140 @@
-// main del caso. Vuestro trabajo: rellenar ejecutarSimulacion y las listas de claves y modos.
-// Mirad ejemplo/main.cpp para ver cómo se usan las clases del proyecto base.
-// Vuestras 3 clases van en esta misma carpeta (caso/), cada una en su .h y su .cpp,
-// y sus .cpp se añaden a caso/CMakeLists.txt.
-
 #include "Config.h"
 #include "Estadisticas.h"
 #include "Lanzador.h"
 #include "Traza.h"
 #include "Vigilante.h"
-
-#include <chrono>
-#include <string>
 #include "Banco.h"
-#include <thread>
-#include <vector>
 #include "Antifraude.h"
 #include "Contexto.h"
 
+#include <chrono>
+#include <string>
+#include <thread>
+#include <vector>
 
-
-bool ejecutarSimulacion(const Config& config,
-    Estadisticas& estadisticas, Traza& traza,
+bool ejecutarSimulacion(
+    const Config& config,
+    Estadisticas& estadisticas,
+    Traza& traza,
     const std::string& etiqueta) {
 
-    // Leemos los parametros de configuracion del banco.
+    // Leemos los parametros de configuracion.
     const int clientes = config.entero("clientes", 50);
     const int cuentas = config.entero("cuentas", 10);
     const int operaciones = config.entero("operaciones", 20);
     const int distancia = config.entero("distancia", 1);
     const int umbral = config.entero("umbral", 100);
-    const int periodoAuditor =
-        config.entero("periodo_auditor", 20);
+    const int periodoAuditor = config.entero("periodo_auditor", 20);
 
-    // Comprobamos que la configuracion sea valida.
+    // Validamos los parametros.
     if (clientes <= 0 || cuentas < 2 ||
         operaciones <= 0 || distancia < 1 ||
-        distancia >= cuentas || umbral < 0) {
+        distancia >= cuentas || umbral < 0 ||
+        periodoAuditor <= 0) {
 
         estadisticas.violacion("Configuracion incorrecta");
         return false;
     }
 
-    // La traza se utilizara cuando se complete la integracion.
-    (void)traza;
+    // Seleccionamos los modos de fallo.
+    const bool carrera = config.fallo("carrera");
+    const bool interbloqueo = config.fallo("interbloqueo");
+    const bool inanicion = config.fallo("inanicion");
 
-    // Creamos el vigilante para detectar bloqueos.
+    // Creamos el vigilante.
     Vigilante vigilante(
         std::chrono::milliseconds(
             config.entero("vigilante", 2000)),
         estadisticas, etiqueta
     );
 
-    // Iniciamos el vigilante.
     vigilante.iniciar();
 
-    // Creamos el objeto principal del banco.
-    // Comprobamos si el usuario ha activado el modo carrera.
-   // Comprobamos los modos de fallo seleccionados.
-    const bool carrera = config.fallo("carrera");
-    const bool interbloqueo = config.fallo("interbloqueo");
-    // Activamos el modo inanicion si se solicita.
-    const bool inanicion = config.fallo("inanicion");
-   
-
-    // Creamos el banco con los modos de fallo.
+    // Creamos el banco.
     Banco banco(cuentas, distancia, operaciones,
         umbral, carrera, interbloqueo);
-    // Configuramos el auditor y sus estadisticas.
+
+    // Configuramos el auditor.
     banco.configurarAuditor(
         periodoAuditor, inanicion, estadisticas);
-    // Creamos la cola antifraude desarrollada por P4.
+
+    // Creamos el antifraude y el contexto.
     Antifraude antifraude;
 
-    // Agrupamos las herramientas auxiliares del banco.
-    Contexto ctx{ config, estadisticas, traza, vigilante };
+    Contexto ctx{
+        config, estadisticas, traza, vigilante
+    };
 
-    // Iniciamos el hilo encargado de analizar
-    // las cuentas sospechosas.
+    // Iniciamos el hilo antifraude.
     std::thread hiloAntifraude([&]() {
         antifraude.bucleHilo(ctx);
         });
 
-    // Vector donde guardamos los hilos clientes.
-    // Lanzamos el hilo auditor para comprobar los invariantes.
+    // Iniciamos el hilo auditor.
     std::thread hiloAuditor([&banco]() {
         banco.auditor();
         });
 
-    // Lanzamos el hilo nomina para realizar ingresos periodicos.
+    // Iniciamos el hilo nomina.
     std::thread hiloNomina([&banco]() {
         banco.nomina();
         });
-    
-    std::vector<std::thread> hilosClientes;
 
-    // Reservamos espacio para todos los clientes.
+    // Creamos los hilos clientes.
+    std::vector<std::thread> hilosClientes;
     hilosClientes.reserve(clientes);
 
-    // Creamos un hilo por cada cliente.
     for (int i = 0; i < clientes; ++i) {
-
-        // Cada hilo ejecuta las operaciones de su cliente.
         hilosClientes.emplace_back([&banco, i]() {
             banco.cliente(i);
             });
     }
 
-    // Esperamos a que todos los clientes terminen.
+    // Esperamos a todos los clientes.
     for (auto& hilo : hilosClientes) {
         hilo.join();
-        // Solicitamos el cierre del auditor y la nomina.
-        banco.cerrarAuditorYNomina();
-
-        // Esperamos a que ambos hilos terminen.
-        hiloAuditor.join();
-        hiloNomina.join();
     }
 
-    // Avisamos al auditor y a la nomina de que deben terminar.
+    // Cerramos el auditor y la nomina.
     banco.cerrarAuditorYNomina();
-
-    // Esperamos a que finalicen ambos hilos.
     hiloAuditor.join();
     hiloNomina.join();
 
-    // Cuando TODOS los clientes han terminado,
-    // enviamos el valor -1 para cerrar el antifraude.
+    // Cerramos el antifraude mediante el centinela.
     antifraude.encolar(-1);
-
-    // Esperamos a que termine el hilo antifraude.
     hiloAntifraude.join();
-
-
-    // Pendiente: integrar auditor, nomina y antifraude.
-    // Pendiente: comprobar los invariantes finales.
-
-    // Comprobamos los invariantes finales del banco.
-    banco.comprobarinvariantesFinales();
 
     // Comprobamos los invariantes finales.
     banco.comprobarinvariantesFinales();
 
-    // Detenemos el vigilante al finalizar.
+    // Detenemos el vigilante.
     vigilante.detener();
 
-    // Devolvemos el resultado de las comprobaciones.
+    // Devolvemos el resultado de la simulacion.
     return estadisticas.sinViolaciones();
 }
 
-
-
-
 int main(int argc, char* argv[]) {
 
-    // Recogemos los argumentos introducidos por el usuario
-    // desde la terminal al ejecutar nuestro programa.
     Config config(argc, argv);
-
-    // Creamos el lanzador del caso 3: Banco.
-    // Indicamos las seis claves permitidas por el profesor
-    // para configurar el comportamiento de la simulacion.
 
     Lanzador lanzador(
         "banco",
         {
-            "clientes",        // Numero de clientes.
-            "cuentas",         // Numero de cuentas bancarias.
-            "operaciones",     // Operaciones por cliente.
-            "distancia",       // Distancia entre cuentas.
-            "umbral",          // Importe sospechoso.
-            "periodo_auditor"  // Tiempo entre auditorias.
+            "clientes",
+            "cuentas",
+            "operaciones",
+            "distancia",
+            "umbral",
+            "periodo_auditor"
         },
         {
-            "carrera",         // Carrera de datos.
-            "interbloqueo",    // Bloqueo entre hilos.
-            "inanicion"        // Dificultad para acceder al recurso.
+            "carrera",
+            "interbloqueo",
+            "inanicion"
         }
     );
 
-    // El lanzador comprueba los argumentos y ejecuta
-    // nuestra funcion principal de simulacion.
-    // Tambien permite realizar pruebas de estres.
-    return lanzador.ejecutar(config, ejecutarSimulacion);
+    return lanzador.ejecutar(
+        config, ejecutarSimulacion);
 }
